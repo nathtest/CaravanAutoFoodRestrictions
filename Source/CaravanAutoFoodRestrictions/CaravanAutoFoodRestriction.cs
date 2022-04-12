@@ -46,10 +46,34 @@ namespace CaravanAutoFoodRestrictions
                     if (!pawn.RaceProps.Humanlike) continue;
                     Log.Message("CaravanAutoFoodRestrictions pawn " + pawn.Name + " set food restriction from " + pawn.foodRestriction.CurrentFoodRestriction.label + " to " +  pawnFoodRestriction.label);
                     pawn.foodRestriction.CurrentFoodRestriction = pawnFoodRestriction;
+                    Log.Message("CaravanAutoFoodRestrictions debug " + pawn.IsWorldPawn() + " " + (Find.WorldPawns.GetSituation(pawn) == WorldPawnSituation.Free) + " " + (Find.WorldPawns.GetSituation(pawn) == WorldPawnSituation.CaravanMember) );
                 }
             }
         }
+        
+        [HarmonyPatch(typeof(CaravanArrivalAction_Enter))]
+        [HarmonyPatch(nameof(CaravanArrivalAction_Enter.Arrived))]
+        static class CaravanArrivalAction_Enter_Patch
+        {
+            static void Prefix(Caravan caravan, ref CaravanArrivalAction_Enter __instance) 
+            {
+                Log.Message("CaravanAutoFoodRestrictions Harmony CaravanArrivalAction_Enter Arrived");
+                
+                MapParent mapParent = Traverse.Create(__instance).Field("mapParent").GetValue() as MapParent;
+                
+                Map map = mapParent.Map;
+                if (map == null)
+                    return;
+
+                if (map.IsPlayerHome)
+                {
+                    Log.Message("CaravanAutoFoodRestrictions Harmony CaravanArrivalAction_Enter caravan home");
+                }
+            }
+        }
+        
     }
+    
     
     public class CaravanAutoFoodRestrictionsSettings : ModSettings
     {
