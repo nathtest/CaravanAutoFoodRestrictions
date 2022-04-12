@@ -13,5 +13,5 @@
 			<downloadUrl>https://steamcommunity.com/sharedfiles/filedetails/?id=2009463077</downloadUrl>
 		</li>
 	</modDependencies>
-	<description>Caravan Auto Food Restrictions allow to set a default food restriction when starting a caravan (only when map existing).</description>
+	<description>Caravan Auto Food Restrictions allow to set a default food restriction when starting a caravan (only apply when exiting map tile).</description>
 </ModMetaData>
