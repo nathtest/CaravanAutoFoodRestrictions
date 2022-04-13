@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using RimWorld;
 using RimWorld.Planet;
 using Verse;
@@ -30,23 +31,31 @@ namespace CaravanAutoFoodRestrictions
                 Log.Message("CaravanAutoFoodRestrictions Harmony CaravanMaker MakeCaravan");
                 Log.Message("CaravanAutoFoodRestrictions Number of pawns in caravan " + __result.pawns.Count);
                 
-                var pawnFoodRestrictionLabel = LoadedModManager.GetMod<CaravanAutoFoodRestrictionsMod>().GetSettings<CaravanAutoFoodRestrictionsSettings>().PawnFoodRestrictionLabel;
+                var caravanAutoFoodRestrictionsData = Find.World.GetComponent<CaravanAutoFoodRestrictionsData>();
+                
+                if (caravanAutoFoodRestrictionsData.RetainedCaravanData ==  null)
+                {
+                    caravanAutoFoodRestrictionsData.RetainedCaravanData = new Dictionary<string, string>();
+                    Log.Message("CaravanAutoFoodRestrictions loaded setting RetainedCaravanData empty");
+                }
+                
+                var pawnFoodRestrictionLabel = caravanAutoFoodRestrictionsData.PawnFoodRestrictionLabel;
                 if (pawnFoodRestrictionLabel == null)
                 {
                     Log.Warning("No food restriction selected in setting. Exiting...");
                     return;
                 }
-                var defaultFoodRestriction = Current.Game.foodRestrictionDatabase.DefaultFoodRestriction();
-                var pawnFoodRestriction = Current.Game.foodRestrictionDatabase.AllFoodRestrictions.FirstOrFallback(restriction => restriction.label == pawnFoodRestrictionLabel, defaultFoodRestriction);
-                
-                Log.Message("CaravanAutoFoodRestrictions loaded setting pawnFoodRestrictionLabel " + pawnFoodRestrictionLabel);
 
+                var pawnFoodRestriction = Current.Game.foodRestrictionDatabase.AllFoodRestrictions.FirstOrFallback(restriction => restriction.label == pawnFoodRestrictionLabel, Current.Game.foodRestrictionDatabase.DefaultFoodRestriction());
+                Log.Message("CaravanAutoFoodRestrictions loaded setting pawnFoodRestrictionLabel " + pawnFoodRestrictionLabel);
+                
                 foreach (var pawn in __result.pawns)
                 {
                     if (!pawn.RaceProps.Humanlike) continue;
+                    caravanAutoFoodRestrictionsData.RetainedCaravanData[__result.GetUniqueLoadID()+"_"+pawn.GetUniqueLoadID()] = pawn.foodRestriction.CurrentFoodRestriction.label;
+                    
                     Log.Message("CaravanAutoFoodRestrictions pawn " + pawn.Name + " set food restriction from " + pawn.foodRestriction.CurrentFoodRestriction.label + " to " +  pawnFoodRestriction.label);
                     pawn.foodRestriction.CurrentFoodRestriction = pawnFoodRestriction;
-                    Log.Message("CaravanAutoFoodRestrictions debug " + pawn.IsWorldPawn() + " " + (Find.WorldPawns.GetSituation(pawn) == WorldPawnSituation.Free) + " " + (Find.WorldPawns.GetSituation(pawn) == WorldPawnSituation.CaravanMember) );
                 }
             }
         }
@@ -55,45 +64,65 @@ namespace CaravanAutoFoodRestrictions
         [HarmonyPatch(nameof(CaravanArrivalAction_Enter.Arrived))]
         static class CaravanArrivalAction_Enter_Patch
         {
-            static void Prefix(Caravan caravan, ref CaravanArrivalAction_Enter __instance) 
+            static void Prefix(Caravan caravan, ref MapParent ___mapParent) 
             {
                 Log.Message("CaravanAutoFoodRestrictions Harmony CaravanArrivalAction_Enter Arrived");
                 
-                MapParent mapParent = Traverse.Create(__instance).Field("mapParent").GetValue() as MapParent;
-                
-                Map map = mapParent.Map;
+                Map map = ___mapParent.Map;
                 if (map == null)
                     return;
+                
+                var caravanAutoFoodRestrictionsData = Find.World.GetComponent<CaravanAutoFoodRestrictionsData>();
+                if(caravanAutoFoodRestrictionsData == null) return;
 
                 if (map.IsPlayerHome)
                 {
                     Log.Message("CaravanAutoFoodRestrictions Harmony CaravanArrivalAction_Enter caravan home");
+
+                    foreach (var pawn in caravan.pawns)
+                    {
+                        if(caravanAutoFoodRestrictionsData.RetainedCaravanData.TryGetValue(caravan.GetUniqueLoadID()+"_"+pawn.GetUniqueLoadID(), out var pawnFoodRestrictionLabelSaved))
+                        {
+                            Log.Message("CaravanAutoFoodRestrictions Harmony CaravanArrivalAction_Enter value found " + pawnFoodRestrictionLabelSaved);
+                            pawn.foodRestriction.CurrentFoodRestriction = Current.Game.foodRestrictionDatabase.AllFoodRestrictions.FirstOrFallback(restriction => restriction.label == pawnFoodRestrictionLabelSaved, Current.Game.foodRestrictionDatabase.DefaultFoodRestriction());
+                            caravanAutoFoodRestrictionsData.RetainedCaravanData.Remove(caravan.GetUniqueLoadID()+"_"+pawn.GetUniqueLoadID());
+                        }
+                        else
+                        {
+                            Log.Message("CaravanAutoFoodRestrictions Harmony CaravanArrivalAction_Enter value not found " + caravan.GetUniqueLoadID()+"_"+pawn.GetUniqueLoadID());
+                        }
+                    }
+                }
+                else
+                {
+                    Log.Message("CaravanAutoFoodRestrictions Harmony CaravanArrivalAction_Enter caravan is not home");
                 }
             }
         }
         
     }
     
-    
-    public class CaravanAutoFoodRestrictionsSettings : ModSettings
-    {
+    public class CaravanAutoFoodRestrictionsData : WorldComponent {
         public string PawnFoodRestrictionLabel;
-        
-        public override void ExposeData()
-        {
+        public Dictionary<string,  string> RetainedCaravanData;
+        public List<string> PawnCaravanId;  // string concat of pawn id and caravan id
+        public List<string> FoodRestrictionLabel;
+
+        public CaravanAutoFoodRestrictionsData(World world) : base(world) {
+        }
+        public override void ExposeData() {
             Scribe_Values.Look(ref PawnFoodRestrictionLabel, "PawnFoodRestrictionLabel");
-            Log.Message("CaravanAutoFoodRestrictions ModSettings " + PawnFoodRestrictionLabel);
-            base.ExposeData();
+            // https://spdskatr.github.io/RWModdingResources/saving-guide
+            Scribe_Collections.Look(ref RetainedCaravanData, "RetainedCaravanData", LookMode.Value, LookMode.Value, ref PawnCaravanId, ref FoodRestrictionLabel);
         }
     }
-
+    
     public class CaravanAutoFoodRestrictionsMod : Mod
     {
-        CaravanAutoFoodRestrictionsSettings settings;
 
         public CaravanAutoFoodRestrictionsMod(ModContentPack content) : base(content)
         {
-            this.settings = GetSettings<CaravanAutoFoodRestrictionsSettings>();
+
         }
         
         public override void DoSettingsWindowContents(Rect inRect)
@@ -103,7 +132,7 @@ namespace CaravanAutoFoodRestrictions
             if (Current.Game != null)
             {
                 var labelFoodRestrictions = Current.Game.foodRestrictionDatabase.AllFoodRestrictions.Select(foodRestriction => foodRestriction.label).ToArray();
-                listingStandard.AddLabeledRadioList("Pawn Food Restriction", labelFoodRestrictions,ref settings.PawnFoodRestrictionLabel);
+                listingStandard.AddLabeledRadioList("Pawn Food Restriction", labelFoodRestrictions,ref Find.World.GetComponent<CaravanAutoFoodRestrictionsData>().PawnFoodRestrictionLabel);
             }
             else
             {
