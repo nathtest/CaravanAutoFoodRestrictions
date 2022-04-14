@@ -105,7 +105,7 @@ namespace CaravanAutoFoodRestrictions
     public class CaravanAutoFoodRestrictionsData : WorldComponent {
         public string PawnFoodRestrictionLabel;
         public Dictionary<string,  string> RetainedCaravanData;
-        public List<string> PawnCaravanId;  // string concat of pawn id and caravan id
+        public List<string> PawnId;
         public List<string> FoodRestrictionLabel;
 
         public CaravanAutoFoodRestrictionsData(World world) : base(world) {
@@ -113,7 +113,7 @@ namespace CaravanAutoFoodRestrictions
         public override void ExposeData() {
             Scribe_Values.Look(ref PawnFoodRestrictionLabel, "PawnFoodRestrictionLabel");
             // https://spdskatr.github.io/RWModdingResources/saving-guide
-            Scribe_Collections.Look(ref RetainedCaravanData, "RetainedCaravanData", LookMode.Value, LookMode.Value, ref PawnCaravanId, ref FoodRestrictionLabel);
+            Scribe_Collections.Look(ref RetainedCaravanData, "RetainedCaravanData", LookMode.Value, LookMode.Value, ref PawnId, ref FoodRestrictionLabel);
         }
     }
     
