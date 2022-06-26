@@ -73,7 +73,7 @@ namespace CaravanAutoFoodRestrictions
                     return;
                 
                 var caravanAutoFoodRestrictionsData = Find.World.GetComponent<CaravanAutoFoodRestrictionsData>();
-                if(caravanAutoFoodRestrictionsData == null) return;
+                if(caravanAutoFoodRestrictionsData?.RetainedCaravanData == null) return;
 
                 if (map.IsPlayerHome)
                 {
