@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--<Defs>-->
+<!--  Original PawnTable Def-->
+<!--  <PawnTableDef>-->
+<!--    <defName>Assign</defName>-->
+<!--    <workerClass>PawnTable_PlayerPawns</workerClass>-->
+<!--    <columns>-->
+<!--      <li>Label</li>-->
+<!--      <li MayRequire="Ludeon.RimWorld.Ideology">Ideo</li>-->
+<!--      <li>HostilityResponse</li>-->
+<!--      <li>MedicalCare</li>-->
+<!--      <li>GapTiny</li>-->
+<!--      <li>Outfit</li>-->
+<!--      <li>GapTiny</li>-->
+<!--      <li>FoodRestriction</li>-->
+<!--      <li>GapTiny</li>-->
+<!--      <li>CaravanFoodRestriction</li>-->
+<!--      <li>GapTiny</li>-->
+<!--      <li>DrugPolicy</li>-->
+<!--      <li>GapTiny</li>-->
+<!--      <li>Carry</li>-->
+<!--      <li>RemainingSpace</li>-->
+<!--    </columns>-->
+<!--  </PawnTableDef>-->
+<!--</Defs>-->
+
+<Patch>
+<Operation Class="PatchOperationInsert">
+    <xpath>/Defs/PawnTableDef[defName="Assign"]/columns/li[text()="FoodRestriction"]</xpath>
+    <order>Append</order>
+    <value>
+      <li>GapTiny</li>
+      <li>CaravanFoodRestriction</li>
+    </value>
+  </Operation>
+</Patch>
