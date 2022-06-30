@@ -13,5 +13,9 @@
 			<downloadUrl>https://steamcommunity.com/sharedfiles/filedetails/?id=2009463077</downloadUrl>
 		</li>
 	</modDependencies>
-	<description>Caravan Auto Food Restrictions allow to set a default food restriction when starting a caravan (only apply when exiting map tile).</description>
+	<description>Tired of changing your pawn food restriction everytime your start a caravan ?
+		
+Caravan Auto Food Restrictions allow to set a caravan food restriction for your pawn once and for all throughout the Assign menu.
+The mod auto-change the pawn current food restriction to the selected one in assign menu when caravanning and resets it when returning home.
+	</description>
 </ModMetaData>
