@@ -105,7 +105,7 @@ namespace RimWorld
         {
             base.DoHeader(rect, table);
             MouseoverSounds.DoRegion(rect);
-            if (!Widgets.ButtonText(new Rect(rect.x, rect.y + (rect.height - 65f), Mathf.Min(rect.width, 360f), 32f), (string) "Manage caravan food Restrictions"))
+            if (!Widgets.ButtonText(new Rect(rect.x, rect.y + (rect.height - 65f), Mathf.Min(rect.width, 360f), 32f), (string) "Manage caravan food restrictions"))
                 return;
             Find.WindowStack.Add((Window) new Dialog_ManageFoodRestrictions((FoodRestriction) null));
         }
@@ -154,8 +154,9 @@ namespace RimWorld
                 Find.WindowStack.Add((Window) new Dialog_ManageFoodRestrictions(GetCaravanPawnFoodRestriction(pawn)));
             float num = x2 + (float) width2;
         }
-
-        private FoodRestriction GetCaravanPawnFoodRestriction(Pawn pawn)
+        
+        // TODO maybe try setting caravanAutoFoodRestrictionsData on constructor but its executed on startup !
+        private static FoodRestriction GetCaravanPawnFoodRestriction(Pawn pawn)
         {
             var caravanAutoFoodRestrictionsData = Find.World.GetComponent<CaravanAutoFoodRestrictionsData>();
             if (caravanAutoFoodRestrictionsData?.RetainedCaravanData == null) return Current.Game.foodRestrictionDatabase.DefaultFoodRestriction();
@@ -166,10 +167,10 @@ namespace RimWorld
             return savedFood;
         }
 
-        private void SetCaravanPawnFoodRestriction(Pawn pawn, FoodRestriction foodRestriction)
+        private static void SetCaravanPawnFoodRestriction(Pawn pawn, FoodRestriction foodRestriction)
         {
             var caravanAutoFoodRestrictionsData = Find.World.GetComponent<CaravanAutoFoodRestrictionsData>();
-            
+            if (caravanAutoFoodRestrictionsData?.RetainedCaravanData == null) return;
             caravanAutoFoodRestrictionsData.RetainedCaravanData[pawn.GetUniqueLoadID()] = foodRestriction.label;
         }
     }
