@@ -30,6 +30,7 @@ namespace CaravanAutoFoodRestrictions
                 
                 foreach (var pawn in __result.pawns)
                 {
+                    if(!Find.CurrentMap.ParentFaction.IsPlayer)continue;
                     if (!pawn.RaceProps.Humanlike) continue;
                     caravanAutoFoodRestrictionsData.RetainedHomeData[pawn.GetUniqueLoadID()] = pawn.foodRestriction.CurrentFoodRestriction.label;
 
@@ -43,7 +44,7 @@ namespace CaravanAutoFoodRestrictions
         [HarmonyPatch(nameof(CaravanArrivalAction_Enter.Arrived))]
         static class CaravanArrivalAction_Enter_Patch
         {
-            static void Prefix(Caravan caravan, ref MapParent ___mapParent)
+            static void Prefix(Caravan caravan, ref MapParent ___mapParent) // could be changed to PostFix
             {
 
                 var caravanAutoFoodRestrictionsData = Find.World.GetComponent<CaravanAutoFoodRestrictionsData>();
@@ -55,21 +56,18 @@ namespace CaravanAutoFoodRestrictions
 
                 if (map.IsPlayerHome)
                 {
-
                     foreach (var pawn in caravan.pawns)
                     {
                         if (caravanAutoFoodRestrictionsData.RetainedHomeData.TryGetValue(pawn.GetUniqueLoadID(), out var pawnFoodRestrictionLabelSaved))
                         {
                             pawn.foodRestriction.CurrentFoodRestriction = Current.Game.foodRestrictionDatabase.AllFoodRestrictions.FirstOrFallback(restriction => restriction.label == pawnFoodRestrictionLabelSaved, Current.Game.foodRestrictionDatabase.DefaultFoodRestriction());
                         }
-
                     }
                 }
-
             }
         }
     }
-
+    
     public class CaravanAutoFoodRestrictionsData : WorldComponent
     {
         public Dictionary<string, string> RetainedCaravanData = new Dictionary<string, string>();
