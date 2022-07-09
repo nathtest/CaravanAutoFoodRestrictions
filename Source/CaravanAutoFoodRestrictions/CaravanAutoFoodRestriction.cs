@@ -30,7 +30,8 @@ namespace CaravanAutoFoodRestrictions
                 
                 foreach (var pawn in __result.pawns)
                 {
-                    if(!Find.CurrentMap.ParentFaction.IsPlayer)continue;
+                    if (Find.CurrentMap.IsTempIncidentMap) continue;
+                    if(!Find.CurrentMap.ParentFaction.IsPlayer)continue; // ParentFaction is null when current map IsTempIncidentMap
                     if (!pawn.RaceProps.Humanlike) continue;
                     caravanAutoFoodRestrictionsData.RetainedHomeData[pawn.GetUniqueLoadID()] = pawn.foodRestriction.CurrentFoodRestriction.label;
 
