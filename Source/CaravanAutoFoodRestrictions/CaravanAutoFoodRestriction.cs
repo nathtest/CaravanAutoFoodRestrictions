@@ -25,13 +25,13 @@ namespace CaravanAutoFoodRestrictions
         {
             static void Postfix(ref Caravan __result)
             {
+                if(Find.CurrentMap.ParentFaction is null)return; // ParentFaction is null when current map is on an TempIncidentMap
+                if(!Find.CurrentMap.ParentFaction.IsPlayer)return;
                 
                 var caravanAutoFoodRestrictionsData = Find.World.GetComponent<CaravanAutoFoodRestrictionsData>();
                 
                 foreach (var pawn in __result.pawns)
                 {
-                    if (Find.CurrentMap.IsTempIncidentMap) continue;
-                    if(!Find.CurrentMap.ParentFaction.IsPlayer)continue; // ParentFaction is null when current map IsTempIncidentMap
                     if (!pawn.RaceProps.Humanlike) continue;
                     caravanAutoFoodRestrictionsData.RetainedHomeData[pawn.GetUniqueLoadID()] = pawn.foodRestriction.CurrentFoodRestriction.label;
 
@@ -45,7 +45,7 @@ namespace CaravanAutoFoodRestrictions
         [HarmonyPatch(nameof(CaravanArrivalAction_Enter.Arrived))]
         static class CaravanArrivalAction_Enter_Patch
         {
-            static void Prefix(Caravan caravan, ref MapParent ___mapParent) // could be changed to PostFix
+            static void Prefix(Caravan caravan, ref MapParent ___mapParent)
             {
 
                 var caravanAutoFoodRestrictionsData = Find.World.GetComponent<CaravanAutoFoodRestrictionsData>();
